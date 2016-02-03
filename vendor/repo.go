@@ -46,6 +46,7 @@ type WorkingCopy interface {
 
 var (
 	ghregex   = regexp.MustCompile(`^(?P<root>github\.com/([A-Za-z0-9_.\-]+/[A-Za-z0-9_.\-]+))(/[A-Za-z0-9_.\-]+)*$`)
+	omniregex = regexp.MustCompile(`^(?P<root>git\.omnistream\.co/([A-Za-z0-9_.\-]+/[A-Za-z0-9_.\-]+))(/[A-Za-z0-9_.\-]+)*$`)
 	bbregex   = regexp.MustCompile(`^(?P<root>bitbucket\.org/(?P<bitname>[A-Za-z0-9_.\-]+/[A-Za-z0-9_.\-]+))(/[A-Za-z0-9_.\-]+)*$`)
 	lpregex   = regexp.MustCompile(`^launchpad.net/([A-Za-z0-9-._]+)(/[A-Za-z0-9-._]+)?(/.+)?`)
 	gcregex   = regexp.MustCompile(`^(?P<root>code\.google\.com/[pr]/(?P<project>[a-z0-9\-]+)(\.(?P<subrepo>[a-z0-9\-]+))?)(/[A-Za-z0-9_.\-]+)*$`)
@@ -78,6 +79,14 @@ func DeduceRemoteRepo(path string, insecure bool) (RemoteRepo, string, error) {
 		v := ghregex.FindStringSubmatch(path)
 		url := &url.URL{
 			Host: "github.com",
+			Path: v[2],
+		}
+		repo, err := Gitrepo(url, insecure, schemes...)
+		return repo, v[0][len(v[1]):], err
+	case omniregex.MatchString(path):
+		v := omniregex.FindStringSubmatch(path)
+		url := &url.URL{
+			Host: "git.omnistream.co",
 			Path: v[2],
 		}
 		repo, err := Gitrepo(url, insecure, schemes...)
